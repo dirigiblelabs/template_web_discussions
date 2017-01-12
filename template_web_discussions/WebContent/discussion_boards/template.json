@@ -72,15 +72,6 @@
         "name": "ScriptingServices/svc/comment.js",
         "action": "generate"
     }, {
-        "name": "ScriptingServices/idm/lib/user_dao.js",
-        "action": "copy"
-    }, {
-        "name": "ScriptingServices/idm/svc/user.js",
-        "action": "copy"
-    }, {
-        "name": "DataStructures/idm_user.table",
-        "action": "copy"
-    }, {
         "name": "DataStructures/dis_board.table",
         "action": "generate",
         "rename": "%s_board"
@@ -105,7 +96,14 @@
         "action": "generate",
         "rename": "%s_board_stats"
     }, {
+        "name": "DataStructures/dis_board_tag.table",
+        "action": "generate",
+        "rename": "%s_board_tag"
+    }, {
         "name": "SecurityConstraints/main.access",
+        "action": "generate"
+    }, {
+        "name": "project.json",
         "action": "generate"
     }],
     "parameters": [{

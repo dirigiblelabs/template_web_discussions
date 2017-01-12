@@ -73,7 +73,7 @@
 			});
 	}])
 	.service('${D}LoggedUser', ['${D}resource', '${D}log', function(${D}resource) {
-		var UserSvc =  ${D}resource('../../js/idm/svc/user.js/${D}current', {}, 
+		var UserSvc =  ${D}resource('../../js/usr/svc/user.js/${D}current', {}, 
 	  					{get: {method:'GET', params:{}, isArray:false, ignoreLoadingBar: true}});
 	  	var get = function(){
 		  	return UserSvc.get().${D}promise;
@@ -83,7 +83,7 @@
 	  	};
 	}])
 	.service('${D}UserImg', ['${D}resource', function(${D}resource) {
-		var UserSvc = ${D}resource('../../js/idm/svc/user.js/${D}pics/:userName', {}, 
+		var UserSvc = ${D}resource('../../js/usr/svc/user.js/${D}pics/:userName', {}, 
 	  					{get: {method:'GET', params:{}, isArray:false, cache: true, ignoreLoadingBar: true}});
 		var get = function(userName){
 		  	return UserSvc.get({"userName":userName}).${D}promise

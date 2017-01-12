@@ -16,7 +16,7 @@ var persistentProperties = {
 	optional: ["shortText", "description", "publishTime", "lastModifiedTime", "status", "user"]
 };
 
-var log = require("logging/lib/logger").logger;
+var log = require("logging/logger").logger;
 log.ctx = "${packageName.toUpperCase()} Board DAO";
 
 // Parse JSON entity into SQL and insert in db. Returns the new record id.
@@ -236,8 +236,8 @@ function createEntity(resultSet) {
 	entity.id = resultSet.getInt("${packageName.toUpperCase()}B_ID");
     entity.shortText = resultSet.getString("${packageName.toUpperCase()}B_SHORT_TEXT");	
     entity.description = resultSet.getString("${packageName.toUpperCase()}B_DESCRIPTION");
-    entity.user = resultSet.getString("IDMU_UNAME");
-   	entity.user_pic = resultSet.getString("IDMU_PIC");
+    entity.user = resultSet.getString("USRU_UNAME");
+   	entity.user_pic = resultSet.getString("USRU_PIC");
    	entity.status = resultSet.getString("${packageName.toUpperCase()}B_STATUS");
     entity.visits = resultSet.getString("${packageName.toUpperCase()}B_VISITS");
     

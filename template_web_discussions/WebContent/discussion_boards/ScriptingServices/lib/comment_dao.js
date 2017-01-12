@@ -12,7 +12,7 @@ var persistentProperties = {
 	optional: ["text", "user", "publishTime", "lastModifiedTime", "replyToCommentId"]
 };
 
-var log = require("logging/lib/logger").logger;
+var log = require("logging/logger").logger;
 log.ctx = "${packageName.toUpperCase()} Comment DAO";
 
 // Parse JSON entity into SQL and insert in db. Returns the new record id.
@@ -84,7 +84,7 @@ exports.find = function(id, expanded) {
     var connection = datasource.getConnection();
     try {
         var item;
-        var sql = "SELECT * FROM ${packageName.toUpperCase()}_COMMENT LEFT JOIN IDM_USER AS u ON ${packageName.toUpperCase()}C_USER = u.IDMU_UNAME WHERE " + exports.pkToSQL();
+        var sql = "SELECT * FROM ${packageName.toUpperCase()}_COMMENT LEFT JOIN USR_USER AS u ON ${packageName.toUpperCase()}C_USER = u.USRU_UNAME WHERE " + exports.pkToSQL();
         var statement = connection.prepareStatement(sql);
         statement.setInt(1, id);
         
@@ -116,7 +116,7 @@ exports.findComments = function(boardId, expanded) {
     var connection = datasource.getConnection();
     try {
         var items = [];
-        var sql = "SELECT * FROM ${packageName.toUpperCase()}_COMMENT LEFT JOIN IDM_USER AS u ON ${packageName.toUpperCase()}C_USER = u.IDMU_UNAME WHERE ${packageName.toUpperCase()}C_${packageName.toUpperCase()}B_ID=? AND ${packageName.toUpperCase()}C_REPLY_TO_${packageName.toUpperCase()}C_ID IS NULL";
+        var sql = "SELECT * FROM ${packageName.toUpperCase()}_COMMENT LEFT JOIN USR_USER AS u ON ${packageName.toUpperCase()}C_USER = u.USRU_UNAME WHERE ${packageName.toUpperCase()}C_${packageName.toUpperCase()}B_ID=? AND ${packageName.toUpperCase()}C_REPLY_TO_${packageName.toUpperCase()}C_ID IS NULL";
         var statement = connection.prepareStatement(sql);
         statement.setInt(1, boardId);
         
@@ -148,7 +148,7 @@ exports.findReplies = function(boardId, commentId) {
     var connection = datasource.getConnection();
     try {
         var items = [];
-        var sql = "SELECT * FROM ${packageName.toUpperCase()}_COMMENT LEFT JOIN IDM_USER AS u ON ${packageName.toUpperCase()}C_USER = u.IDMU_UNAME WHERE ${packageName.toUpperCase()}C_${packageName.toUpperCase()}B_ID=? AND ${packageName.toUpperCase()}C_REPLY_TO_${packageName.toUpperCase()}C_ID=?";
+        var sql = "SELECT * FROM ${packageName.toUpperCase()}_COMMENT LEFT JOIN USR_USER AS u ON ${packageName.toUpperCase()}C_USER = u.USRU_UNAME WHERE ${packageName.toUpperCase()}C_${packageName.toUpperCase()}B_ID=? AND ${packageName.toUpperCase()}C_REPLY_TO_${packageName.toUpperCase()}C_ID=?";
         var statement = connection.prepareStatement(sql);
         statement.setInt(1, boardId);
         statement.setInt(2, commentId);
@@ -177,7 +177,7 @@ exports.findDiscussionPosts = function(boardId, flat) {
     var connection = datasource.getConnection();
     try {
         var items = [];
-        var sql = "SELECT * FROM ${packageName.toUpperCase()}_COMMENT LEFT JOIN IDM_USER AS u ON ${packageName.toUpperCase()}C_USER = u.IDMU_UNAME WHERE ${packageName.toUpperCase()}C_${packageName.toUpperCase()}B_ID=? ORDER BY ";
+        var sql = "SELECT * FROM ${packageName.toUpperCase()}_COMMENT LEFT JOIN USR_USER AS u ON ${packageName.toUpperCase()}C_USER = u.USRU_UNAME WHERE ${packageName.toUpperCase()}C_${packageName.toUpperCase()}B_ID=? ORDER BY ";
         
         if(!flat){
         	sql += "${packageName.toUpperCase()}C_REPLY_TO_${packageName.toUpperCase()}C_ID,";
@@ -236,7 +236,7 @@ exports.list = function(boardId, limit, offset, sort, order, expanded) {
             sql += " " + datasource.getPaging().genTopAndStart(limit, offset);
         }
         sql += " * FROM ${packageName.toUpperCase()}_COMMENT";
-        sql += " LEFT JOIN IDM_USER AS u ON ${packageName.toUpperCase()}C_USER = u.IDMU_UNAME";
+        sql += " LEFT JOIN USR_USER AS u ON ${packageName.toUpperCase()}C_USER = u.USRU_UNAME";
         if(boardId !== null && boardId !== undefined){
         	sql += " WHERE ${packageName.toUpperCase()}C_${packageName.toUpperCase()}B_ID=" + boardId;
         }
@@ -278,8 +278,8 @@ function createEntity(resultSet) {
 	entity.id = resultSet.getInt("${packageName.toUpperCase()}C_ID");
 	entity.text = resultSet.getString("${packageName.toUpperCase()}C_COMMENT_TEXT");
 	entity.boardId = resultSet.getString("${packageName.toUpperCase()}C_${packageName.toUpperCase()}B_ID");
-    entity.user = resultSet.getString("IDMU_UNAME");
-    entity.pic = resultSet.getString("IDMU_PIC");
+    entity.user = resultSet.getString("USRU_UNAME");
+    entity.pic = resultSet.getString("USRU_PIC");
     entity.replyToCommentId = resultSet.getString("${packageName.toUpperCase()}C_REPLY_TO_${packageName.toUpperCase()}C_ID");
     if(entity.replyToCommentId < 0){
     	entity.replyToCommentId = undefined;

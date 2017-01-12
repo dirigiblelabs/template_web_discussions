@@ -1,1 +1,9 @@
-{"guid":"template_web_discussions","repository":{"type":"git","branch":"master","url":"https://github.com/dirigiblelabs/template_web_discussions.git"}}
+{
+    "guid":"template_web_discussions",
+    "repository":{
+        "type":"git",
+        "branch":"master",
+        "url":"https://github.com/dirigiblelabs/template_web_discussions.git"
+        
+    }
+}
