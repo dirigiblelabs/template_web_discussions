@@ -413,14 +413,15 @@ exports.remove = function(id, cascaded) {
         }
         statement.executeUpdate();
         
-		if(cascaded===true && id!==null){
+		if(cascaded && id!==null){
 			var dependentItems = commentsLib.list(id);
+			log.info('Deleting ' + dependentItems.length + ' posts related to ${packageName.toUpperCase()}_BOARD[' + id + '] entity.');
 			for(var i = 0; i < dependentItems.length; i++) {
-        		commentsLib.remove(dependentItems[i].boi_id);
+        		commentsLib.remove(dependentItems[i].id);
 			}
 		}        
         
-        log.info('${packageName.toUpperCase()}_BOARD[' + id + '] entity deleted');                
+        log.info('${packageName.toUpperCase()}_BOARD[' + id + '] entity deleted');
         
         return this;
 
