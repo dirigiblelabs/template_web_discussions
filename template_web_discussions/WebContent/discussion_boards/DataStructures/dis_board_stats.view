@@ -9,6 +9,7 @@
 	  a.${packageName.toUpperCase()}B_LASTMODIFIED_TIME,
 	  a.${packageName.toUpperCase()}B_STATUS,
 	  a.${packageName.toUpperCase()}B_VISITS,
+	  a.${packageName.toUpperCase()}B_LOCKED,
 	  b.LATEST_UPDATE_TIME,
 	  b.REPLIES,
 	  b.PARTICIPANTS,

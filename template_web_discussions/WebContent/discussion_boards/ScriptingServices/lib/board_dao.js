@@ -240,7 +240,8 @@ function createEntity(resultSet) {
    	entity.user_pic = resultSet.getString("USRU_PIC");
    	entity.status = resultSet.getString("${packageName.toUpperCase()}B_STATUS");
     entity.visits = resultSet.getString("${packageName.toUpperCase()}B_VISITS");
-    
+    entity.locked = resultSet.getShort("${packageName.toUpperCase()}B_LOCKED")>0?true:false;
+        
     entity.publishTime = resultSet.getLong("${packageName.toUpperCase()}B_PUBLISH_TIME");
     entity.publishTime = new Date(entity.publishTime).toISOString();
     
@@ -275,24 +276,30 @@ exports.vote = function(boardId, user, vote){
 
 	var connection = datasource.getConnection();
     try {
-        var sql = "INSERT INTO ${packageName.toUpperCase()}_BOARD_VOTE (";
-        sql += "${packageName.toUpperCase()}V_ID, ${packageName.toUpperCase()}V_${packageName.toUpperCase()}B_ID, ${packageName.toUpperCase()}V_USER, ${packageName.toUpperCase()}V_VOTE) "; 
-        sql += "VALUES (?,?,?,?)";
-
-        var statement = connection.prepareStatement(sql);
-        
-        var i = 0;
-        var voteId = datasource.getSequence('${packageName.toUpperCase()}_BOARD_VOTE_${packageName.toUpperCase()}V_ID').next();
-        statement.setInt(++i, voteId);
-        statement.setInt(++i, boardId);        
-        statement.setString(++i, user);        
-        statement.setShort(++i, vote);
+    	var sql;
+    	if(previousVote === undefined || previousVote === null || previousVote === 0){
+    		//Operations is INSERT
+	        sql = "INSERT INTO ${packageName.toUpperCase()}_BOARD_VOTE (${packageName.toUpperCase()}V_ID, ${packageName.toUpperCase()}V_${packageName.toUpperCase()}B_ID, ${packageName.toUpperCase()}V_USER, ${packageName.toUpperCase()}V_VOTE) VALUES (?,?,?,?)";
+	        var statement = connection.prepareStatement(sql);
+	        
+	        var i = 0;
+	        var voteId = datasource.getSequence('${packageName.toUpperCase()}_BOARD_VOTE_DISV_ID').next();
+	        statement.setInt(++i, voteId);
+	        statement.setInt(++i, boardId);
+	        statement.setString(++i, user);        
+	        statement.setShort(++i, vote);
+		} else {
+    		//Operations is UPDATE
+	        sql = "UPDATE ${packageName.toUpperCase()}_BOARD_VOTE SET ${packageName.toUpperCase()}V_VOTE=? WHERE ${packageName.toUpperCase()}V_${packageName.toUpperCase()}B_ID=? AND ${packageName.toUpperCase()}V_USER=?";
+	        var statement = connection.prepareStatement(sql);
+	        
+	        var i = 0;
+	       	statement.setShort(++i, vote);
+	        statement.setInt(++i, boardId);
+	        statement.setString(++i, user);        
+		}
 	    
 	    statement.executeUpdate();
-    	
-    	log.info('${packageName}_BOARD_VOTE entity['+voteId+'] inserted for ${packageName}_BOARD entity['+boardId+']');
-
-        return voteId;
 
     } catch(e) {
 		e.errContext = sql;
@@ -315,7 +322,12 @@ function createSQLEntity(entity) {
 			persistentItem[persistentProperties.optional[i]] = null;
 		}
 	}	
-	
+
+	if(entity.locked === false){
+		persistentItem.locked = 0;
+	} else {
+		persistentItem.locked = 1;
+	}	
 	if(entity.publishTime){
 		persistentItem.publishTime = new Date(entity.publishTime).getTime();
 	} 
@@ -350,7 +362,7 @@ exports.update = function(entity) {
     try {
     
         var sql = "UPDATE ${packageName.toUpperCase()}_BOARD";
-        sql += " SET ${packageName.toUpperCase()}B_SHORT_TEXT=?, ${packageName.toUpperCase()}B_DESCRIPTION=?, ${packageName.toUpperCase()}B_USER=?, ${packageName.toUpperCase()}B_LASTMODIFIED_TIME=?, ${packageName.toUpperCase()}B_STATUS=?"; 
+        sql += " SET ${packageName.toUpperCase()}B_SHORT_TEXT=?, ${packageName.toUpperCase()}B_DESCRIPTION=?, ${packageName.toUpperCase()}B_USER=?, ${packageName.toUpperCase()}B_LASTMODIFIED_TIME=?, ${packageName.toUpperCase()}B_STATUS=?, ${packageName.toUpperCase()}B_LOCKED=?"; 
         sql += " WHERE ${packageName.toUpperCase()}B_ID = ?";
         var statement = connection.prepareStatement(sql);
         var i = 0;
@@ -358,7 +370,8 @@ exports.update = function(entity) {
         statement.setString(++i, entity.description);
         statement.setString(++i, entity.user);
         statement.setLong(++i, Date.now());
-        statement.setString(++i, entity.status);        
+        statement.setString(++i, entity.status);
+        statement.setShort(++i, entity.locked);      
         var id = entity.id;
         statement.setInt(++i, id);
         statement.executeUpdate();
@@ -596,6 +609,63 @@ exports.untag = function(boardId, tags){
         connection.close();
     }
 
+};
+
+exports.lock = function(boardId){
+    $log.info('Locking board entity ${packageName.toUpperCase()}_BOARD[' +  boardId+ ']');
+	var connection = datasource.getConnection();
+	try{
+		var sql =  "UPDATE ${packageName.toUpperCase()}_BOARD SET ${packageName.toUpperCase()}B_LOCKED=1 WHERE ${packageName.toUpperCase()}B_ID=?";
+        var statement = connection.prepareStatement(sql);
+        statement.setInt(1, boardId);	    
+	    statement.executeUpdate();
+    	$log.info('Board entity ${packageName.toUpperCase()}_BOARD[' +  boardId+ '] locked');
+	} catch(e) {
+		e.errContext = sql;
+		throw e;
+    } finally {
+        connection.close();
+    }
+};
+
+exports.unlock = function(boardId){
+    $log.info('Unlocking board entity ${packageName.toUpperCase()}_BOARD[' +  boardId+ ']');
+	var connection = datasource.getConnection();
+	try{
+		var sql = "UPDATE ${packageName.toUpperCase()}_BOARD SET ${packageName.toUpperCase()}DISB_LOCKED=0 WHERE ${packageName.toUpperCase()}B_ID=?";
+        var statement = connection.prepareStatement(sql);
+        statement.setInt(1, boardId);	    
+	    statement.executeUpdate();
+    	$log.info('Board entity ${packageName.toUpperCase()}_BOARD[' +  boardId+ '] unlocked');
+	} catch(e) {
+		e.errContext = sql;
+		throw e;
+    } finally {
+        connection.close();
+    }
+};
+
+exports.isLocked = function(boardId){
+    $log.info('Checking board entity ${packageName.toUpperCase()}_BOARD[' +  boardId+ '] for lock state');
+	var connection = datasource.getConnection();
+	try{
+		var sql = "SELECT ${packageName.toUpperCase()}B_LOCKED FROM ${packageName.toUpperCase()}_BOARD WHERE ${packageName.toUpperCase()}B_ID=?";
+        var statement = connection.prepareStatement(sql);
+        statement.setInt(1, boardId);
+        var resultSet = statement.executeQuery();
+        
+        var isLocked = false;
+        if (resultSet.next()) {
+        	isLocked = resultSet.getShort('${packageName.toUpperCase()}B_LOCKED')===1;
+        }
+        $log.info('Board entity ${packageName.toUpperCase()}_BOARD[' +  boardId+ '] lock state checked');
+        return isLocked;
+	} catch(e) {
+		e.errContext = sql;
+		throw e;
+    } finally {
+        connection.close();
+    }
 };
 
 exports.getPrimaryKeys = function() {
