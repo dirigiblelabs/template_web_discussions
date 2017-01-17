@@ -426,14 +426,14 @@ exports.lock = function(boardId){
 };
 
 exports.unlock = function(boardId){
-	log.info('Updating ${packageName.toUpperCase()_BOARD[' +  boardId + '] entity lock[false]');
+	log.info('Updating ${packageName.toUpperCase()}_BOARD[' +  boardId + '] entity lock[false]');
 	var connection = datasource.getConnection();
 	try{
 		var sql = "UPDATE ${packageName.toUpperCase()}_BOARD SET ${packageName.toUpperCase()}DISB_LOCKED=0 WHERE ${packageName.toUpperCase()}B_ID=?";
         var statement = connection.prepareStatement(sql);
         statement.setInt(1, boardId);	    
 	    statement.executeUpdate();
-	    log.info('${packageName.toUpperCase()_BOARD[' +  boardId + '] entity lock[false] updated');
+	    log.info('${packageName.toUpperCase()}_BOARD[' +  boardId + '] entity lock[false] updated');
 	} catch(e) {
 		e.errContext = sql;
 		throw e;
