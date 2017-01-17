@@ -123,7 +123,7 @@ exports.find = function(id, expanded) {
 				   	 entity[itemsEntitySetName] = dependentItemEntities;
 			   	   }
 			   	   var currentUser = userLib.getName();
-			   	   var userVote = exports.getVote(id, currentUser);
+			   	   var userVote = boardVotes.getVote(id, currentUser);
 			   	   entity.currentUserVote = userVote;
 				}            	
         	} else {

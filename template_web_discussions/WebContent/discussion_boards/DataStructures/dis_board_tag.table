@@ -12,7 +12,7 @@
       }
       ,
       {
-        "name":"${packageName.toUpperCase()}BT_DISB_ID",
+        "name":"${packageName.toUpperCase()}BT_${packageName.toUpperCase()}B_ID",
         "type":"INTEGER",
         "length":"0",
         "notNull":"true",

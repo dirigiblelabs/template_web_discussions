@@ -6,12 +6,12 @@
 var database = require("db/database");
 var datasource = database.getDatasource();
 
-var $log = require("logging/logger").logger;
-$log.ctx = "Board DAO";
+var log = require("logging/logger").logger;
+log.ctx = "Board DAO";
 
 exports.getVote = function(id, user){
 
-	$log.info('Finging USR_USER['+user+'] vote for ${packageName.toUpperCase()}_BOARD['+id+'] entity');
+	log.info('Finging USR_USER['+user+'] vote for ${packageName.toUpperCase()}_BOARD['+id+'] entity');
 
 	if(id === undefined || id === null){
 		throw new Error('Illegal argument for id parameter:' + id);
@@ -33,7 +33,7 @@ exports.getVote = function(id, user){
         if (resultSet.next()) {
             vote = resultSet.getInt("${packageName.toUpperCase()}V_VOTE");
 			if(vote!==0){
-            	$log.info('USR_USER['+user+'] vote for ${packageName.toUpperCase()}_BOARD['+id+'] entity found');
+            	log.info('USR_USER['+user+'] vote for ${packageName.toUpperCase()}_BOARD['+id+'] entity found');
         	}
         } 
     } catch(e) {
@@ -47,7 +47,7 @@ exports.getVote = function(id, user){
 };
 
 exports.vote = function(id, user, vote){
-	$log.info("Recording user["+user+"] vote["+vote+"] for ${packageName.toUpperCase()}_BOARD["+id+"]");
+	log.info("Recording user["+user+"] vote["+vote+"] for ${packageName.toUpperCase()}_BOARD["+id+"]");
 	if(vote===0 || vote === undefined)
 		throw Error('Illegal Argument: vote cannot be 0 or undefined');
 
@@ -59,7 +59,7 @@ exports.vote = function(id, user, vote){
     	if(previousVote === undefined || previousVote === null || previousVote === 0){
     		//Operations is INSERT
     		isInsert = true; 
-    		$log.info("Inserting ${packageName.toUpperCase()}_BOARD_VOTE relation between ${packageName.toUpperCase()}_BOARD["+id+"] and USR_USER["+user+"]");
+    		log.info("Inserting ${packageName.toUpperCase()}_BOARD_VOTE relation between ${packageName.toUpperCase()}_BOARD["+id+"] and USR_USER["+user+"]");
 	        sql = "INSERT INTO ${packageName.toUpperCase()}_BOARD_VOTE (${packageName.toUpperCase()}V_ID, ${packageName.toUpperCase()}V_${packageName.toUpperCase()}B_ID, ${packageName.toUpperCase()}V_USER, ${packageName.toUpperCase()}V_VOTE) VALUES (?,?,?,?)";
 	        statement = connection.prepareStatement(sql);
 	        
@@ -72,7 +72,7 @@ exports.vote = function(id, user, vote){
 		} else {
     		//Operations is UPDATE
 			isInsert = false;
-			$log.info("Updating ${packageName.toUpperCase()}_BOARD_VOTE relation between ${packageName.toUpperCase()}_BOARD["+id+"] and USR_USER["+user+"]");
+			log.info("Updating ${packageName.toUpperCase()}_BOARD_VOTE relation between ${packageName.toUpperCase()}_BOARD["+id+"] and USR_USER["+user+"]");
 	        sql = "UPDATE ${packageName.toUpperCase()}_BOARD_VOTE SET ${packageName.toUpperCase()}V_VOTE=? WHERE ${packageName.toUpperCase()}V_${packageName.toUpperCase()}B_ID=? AND ${packageName.toUpperCase()}V_USER=?";
 	        statement = connection.prepareStatement(sql);
 	        
@@ -85,7 +85,7 @@ exports.vote = function(id, user, vote){
 	    statement.executeUpdate();
 	    
 	    var msgOperationResult = isInsert?"inserted":"updated";
-	    $log.info('${packageName.toUpperCase()}_BOARD_VOTE[' + voteId + '] entity relation between ${packageName.toUpperCase()}_BOARD[' + id + '] and USR_USER[' + user + '] ' + msgOperationResult);
+	    log.info('${packageName.toUpperCase()}_BOARD_VOTE[' + voteId + '] entity relation between ${packageName.toUpperCase()}_BOARD[' + id + '] and USR_USER[' + user + '] ' + msgOperationResult);
 	    
         return voteId;
 

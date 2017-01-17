@@ -6,12 +6,12 @@
 var database = require("db/database");
 var datasource = database.getDatasource();
 
-var $log = require("logging/logger").logger;
-$log.ctx = "BoardTags DAO";
+var log = require("logging/logger").logger;
+log.ctx = "BoardTags DAO";
 
 exports.listBoardTags = function(id){
 
-	$log.info('Finding ${packageName.toUpperCase()}_BOARD_TAG entities related to ${packageName.toUpperCase()}_BOARD['+id+']');
+	log.info('Finding ${packageName.toUpperCase()}_BOARD_TAG entities related to ${packageName.toUpperCase()}_BOARD['+id+']');
 
 	if(id === undefined || id === null){
 		throw new Error('Illegal argument for id parameter:' + id);
@@ -34,7 +34,7 @@ exports.listBoardTags = function(id){
         	};
         	tagEntities.push(tagEntity);
         } 
-        $log.info(tagEntities.length+' ${packageName.toUpperCase()}_BOARD_TAG entities related to ${packageName.toUpperCase()}_BOARD[' + id+ '] found');
+        log.info(tagEntities.length+' ${packageName.toUpperCase()}_BOARD_TAG entities related to ${packageName.toUpperCase()}_BOARD[' + id+ '] found');
         return tagEntities;
     } catch(e) {
 		e.errContext = sql;
@@ -72,7 +72,7 @@ exports.tag = function(id, tags, createOnDemand){
 									});								
 			}
 
-			$log.info('Inserting ${packageName.toUpperCase()}_BOARD_TAG entity relation between ANN_TAG['+tagId+'] entity and ${packageName.toUpperCase()}_BOARD['+id+'] entity');
+			log.info('Inserting ${packageName.toUpperCase()}_BOARD_TAG entity relation between ANN_TAG['+tagId+'] entity and ${packageName.toUpperCase()}_BOARD['+id+'] entity');
 			
 			var sql =  "INSERT INTO ${packageName.toUpperCase()}_BOARD_TAG (";
 	        	sql += "${packageName.toUpperCase()}BT_ID, ${packageName.toUpperCase()}BT_${packageName.toUpperCase()}B_ID, ${packageName.toUpperCase()}BT_ANN_ID) "; 
@@ -88,7 +88,7 @@ exports.tag = function(id, tags, createOnDemand){
 		    
 		    statement.executeUpdate();
 	    	
-	    	$log.info('${packageName.toUpperCase()}_BOARD_TAG[' +  boardTagId + '] entity relation for ANN_TAG['+tagId+'] and ${packageName.toUpperCase()}_BOARD['+id+'] entity inserted');
+	    	log.info('${packageName.toUpperCase()}_BOARD_TAG[' +  boardTagId + '] entity relation for ANN_TAG['+tagId+'] and ${packageName.toUpperCase()}_BOARD['+id+'] entity inserted');
 		}
 	} catch(e) {
 		e.errContext = sql;
@@ -100,7 +100,7 @@ exports.tag = function(id, tags, createOnDemand){
 };
 
 exports.untag = function(id, tags){
-	$log.info('Removing ${packageName.toUpperCase()}_BOARD_TAG entity relations to ${packageName.toUpperCase()}_BOARD['+id+'] entity');
+	log.info('Removing ${packageName.toUpperCase()}_BOARD_TAG entity relations to ${packageName.toUpperCase()}_BOARD['+id+'] entity');
 	var connection = datasource.getConnection();
 	try{
 	
@@ -131,7 +131,7 @@ exports.untag = function(id, tags){
 		    
 		    statement.executeUpdate();
 	    	
-	    	$log.info('${packageName.toUpperCase()}_BOARD_TAG entity relation between ${packageName.toUpperCase()}_BOARD[' + id + '] entity and ANN_TAG['+tagEntity.id+'] removed');
+	    	log.info('${packageName.toUpperCase()}_BOARD_TAG entity relation between ${packageName.toUpperCase()}_BOARD[' + id + '] entity and ANN_TAG['+tagEntity.id+'] removed');
 		}
 	} catch(e) {
 		e.errContext = sql;
@@ -143,13 +143,13 @@ exports.untag = function(id, tags){
 };
 
 exports.setTags = function(id, tags, createOnDemand){
-	$log.info('Inserting ${packageName.toUpperCase()}_BOARD_TAG entity relations to ${packageName.toUpperCase()}_BOARD[' +  id+ '] entity');
+	log.info('Inserting ${packageName.toUpperCase()}_BOARD_TAG entity relations to ${packageName.toUpperCase()}_BOARD[' +  id+ '] entity');
 	var boardTags = exports.listBoardTags(id);	
 	var sql;
 	try{ 
 		var connection = datasource.getConnection();
 		for(var i=0; i < boardTags.length; i++){
-			$log.info('Removing ${packageName.toUpperCase()}_BOARD_TAG entity relation between ${packageName.toUpperCase()}_BOARD['+id+'] entity and ANN_TAG['+boardTags[i].id+']');
+			log.info('Removing ${packageName.toUpperCase()}_BOARD_TAG entity relation between ${packageName.toUpperCase()}_BOARD['+id+'] entity and ANN_TAG['+boardTags[i].id+']');
 			sql =  "DELETE FROM ${packageName.toUpperCase()}_BOARD_TAG ";
 	        sql += "WHERE ${packageName.toUpperCase()}BT_${packageName.toUpperCase()}B_ID=? AND ${packageName.toUpperCase()}BT_ANN_ID=? "; 
 	        var statement = connection.prepareStatement(sql);
@@ -157,9 +157,9 @@ exports.setTags = function(id, tags, createOnDemand){
 	        statement.setInt(++j, id);        
 	        statement.setString(++j, boardTags[i].id);       
 		    statement.executeUpdate();
-		    $log.info('${packageName.toUpperCase()}_BOARD_TAG entity relation between ${packageName.toUpperCase()}_BOARD['+id+'] entity and ANN_TAG['+boardTags[i].id+'] removed');
+		    log.info('${packageName.toUpperCase()}_BOARD_TAG entity relation between ${packageName.toUpperCase()}_BOARD['+id+'] entity and ANN_TAG['+boardTags[i].id+'] removed');
 		}
-		$log.info(boardTags.length + ' ${packageName.toUpperCase()}_BOARD_TAG entity relations to ${packageName.toUpperCase()}_BOARD_TAG[' +  id+ '] entity removed');
+		log.info(boardTags.length + ' ${packageName.toUpperCase()}_BOARD_TAG entity relations to ${packageName.toUpperCase()}_BOARD_TAG[' +  id+ '] entity removed');
 	} catch(e) {
 		e.errContext = sql;
 		throw e;
