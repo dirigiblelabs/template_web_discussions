@@ -5,6 +5,7 @@
 
 var database = require("db/database");
 var commentsLib = require("${packageName}/lib/comment_dao");
+var boardVotes = require("${packageName}/lib/board_votes");
 var userLib = require("net/http/user");
 
 var datasource = database.getDatasource();
@@ -30,7 +31,7 @@ exports.insert = function(entity, cascaded) {
 	
 	for(var i = 0; i< persistentProperties.mandatory.length; i++){
 		var propName = persistentProperties.mandatory[i];
-		if(propName==='id')
+		if(propName === 'id')
 			continue;//Skip validaiton check for id. It's epxected to be null on insert.
 		var propValue = entity[propName];
 		if(propValue === undefined || propValue === null){
@@ -125,6 +126,8 @@ exports.find = function(id, expanded) {
 			   	   var userVote = exports.getVote(id, currentUser);
 			   	   entity.currentUserVote = userVote;
 				}            	
+        	} else {
+	        	log.info('${packageName.toUpperCase()}_BOARD_STATS[' + id + '] entity not found');
         	}
         } 
         return entity;
@@ -138,43 +141,6 @@ exports.find = function(id, expanded) {
 
 exports.getComments = function(boardId, isFlat){
 	return commentsLib.findDiscussionPosts(boardId, isFlat);
-};
-
-exports.getVote = function(id, user){
-
-	log.info('Getting user['+user+'] vote for ${packageName.toUpperCase()}_BOARD_VOTE['+id+'] entity');
-
-	if(id === undefined || id === null){
-		throw new Error('Illegal argument for id parameter:' +id);
-	}
-	
-	if(user === undefined || user === null){
-		throw new Error('Illegal argument for user parameter:' + user);
-	}	
-
-    var connection = datasource.getConnection();
-    var vote = 0;
-    try {
-        var sql = "SELECT * FROM ${packageName.toUpperCase()}_BOARD_VOTE WHERE ${packageName.toUpperCase()}V_${packageName.toUpperCase()}B_ID=? AND ${packageName.toUpperCase()}V_USER=?";
-        var statement = connection.prepareStatement(sql);
-        statement.setInt(1, id);
-        statement.setString(2, user);
-        
-        var resultSet = statement.executeQuery();
-        if (resultSet.next()) {
-            vote = resultSet.getInt("${packageName.toUpperCase()}V_VOTE");
-			if(vote!==0){
-            	log.info('Vote for ${packageName.toUpperCase()}_BOARD[' + id+ '] entity found');
-        	}
-        } 
-    } catch(e) {
-		e.errContext = sql;
-		throw e;
-    } finally {
-        connection.close();
-    }
-	
-	return vote;
 };
 
 // Read all entities, parse and return them as an array of JSON objets
@@ -213,8 +179,10 @@ exports.list = function(limit, offset, sort, order, expanded, entityName) {
 			   	 entity[itemsEntitySetName] = dependentItemEntities;
 		   	   }
 		   	   var currentUser = userLib.getName();
-			   var userVote = exports.getVote(entity.id, currentUser);
-			   entity.currentUserVote = userVote;
+		   	   if(currentUser){
+				   var userVote = boardVotes.getVote(entity.id, currentUser);
+				   entity.currentUserVote = userVote;		   	   
+		   	   }
 			}
             entities.push(entity);
         }
@@ -265,49 +233,9 @@ function createEntity(resultSet) {
 			entity[key] = undefined;
 	}	
     entity.editable = entity.user === userLib.getName();
-    log.info("Transformation from DB JSON object finished");
+    log.info("Transformation from ${packageName.toUpperCase()}_BOARD["+entity.id+"] DB JSON object finished");
     return entity;
 }
-
-exports.vote = function(boardId, user, vote){
-	log.info("Saving user["+user+"] vote["+vote+"] for board["+boardId+"]");
-	if(vote===0 || vote === undefined)
-		throw Error('Illegal Argument: vote cannot be 0 or undefined');
-
-	var connection = datasource.getConnection();
-    try {
-    	var sql;
-    	if(previousVote === undefined || previousVote === null || previousVote === 0){
-    		//Operations is INSERT
-	        sql = "INSERT INTO ${packageName.toUpperCase()}_BOARD_VOTE (${packageName.toUpperCase()}V_ID, ${packageName.toUpperCase()}V_${packageName.toUpperCase()}B_ID, ${packageName.toUpperCase()}V_USER, ${packageName.toUpperCase()}V_VOTE) VALUES (?,?,?,?)";
-	        var statement = connection.prepareStatement(sql);
-	        
-	        var i = 0;
-	        var voteId = datasource.getSequence('${packageName.toUpperCase()}_BOARD_VOTE_DISV_ID').next();
-	        statement.setInt(++i, voteId);
-	        statement.setInt(++i, boardId);
-	        statement.setString(++i, user);        
-	        statement.setShort(++i, vote);
-		} else {
-    		//Operations is UPDATE
-	        sql = "UPDATE ${packageName.toUpperCase()}_BOARD_VOTE SET ${packageName.toUpperCase()}V_VOTE=? WHERE ${packageName.toUpperCase()}V_${packageName.toUpperCase()}B_ID=? AND ${packageName.toUpperCase()}V_USER=?";
-	        var statement = connection.prepareStatement(sql);
-	        
-	        var i = 0;
-	       	statement.setShort(++i, vote);
-	        statement.setInt(++i, boardId);
-	        statement.setString(++i, user);        
-		}
-	    
-	    statement.executeUpdate();
-
-    } catch(e) {
-		e.errContext = sql;
-		throw e;
-    } finally {
-        connection.close();
-    } 
-};
 
 //Prepare a JSON object for insert into DB
 function createSQLEntity(entity) {
@@ -327,7 +255,8 @@ function createSQLEntity(entity) {
 		persistentItem.locked = 0;
 	} else {
 		persistentItem.locked = 1;
-	}	
+	}
+	
 	if(entity.publishTime){
 		persistentItem.publishTime = new Date(entity.publishTime).getTime();
 	} 
@@ -335,7 +264,7 @@ function createSQLEntity(entity) {
 		persistentItem.latestpublishTime = new Date(entity.latestpublishTime).getTime();
 	}
 	
-	log.info("Transformation to DB JSON object finished");
+	log.info("Transformation to ${packageName.toUpperCase()}_BOARD["+entity.id+"] DB JSON object finished");
 	return persistentItem;
 }
 
@@ -371,7 +300,7 @@ exports.update = function(entity) {
         statement.setString(++i, entity.user);
         statement.setLong(++i, Date.now());
         statement.setString(++i, entity.status);
-        statement.setShort(++i, entity.locked);      
+        statement.setShort(++i, entity.locked);
         var id = entity.id;
         statement.setInt(++i, id);
         statement.executeUpdate();
@@ -406,7 +335,6 @@ exports.remove = function(id, cascaded) {
     	 		" = "  + id;
     	 	}
 		}
-
         var statement = connection.prepareStatement(sql);
         if(id!==null && id.constructor !== Array){
         	statement.setString(1, id);
@@ -415,7 +343,7 @@ exports.remove = function(id, cascaded) {
         
 		if(cascaded && id!==null){
 			var dependentItems = commentsLib.list(id);
-			log.info('Deleting ' + dependentItems.length + ' posts related to ${packageName.toUpperCase()}_BOARD[' + id + '] entity.');
+			log.info('Deleting ${packageName.toUpperCase()}_BOARD['+id+'] entity\'s '+dependentItems.length+' dependent posts');
 			for(var i = 0; i < dependentItems.length; i++) {
         		commentsLib.remove(dependentItems[i].id);
 			}
@@ -459,7 +387,7 @@ exports.count = function() {
 };
 
 exports.visit = function(boardId){
-	console.info('Board['+boardId+'] visit recording');
+	log.info('Updating DIS_BOARD['+boardId+'] entity visits');
 	var connection = datasource.getConnection();
     try {
     
@@ -469,7 +397,7 @@ exports.visit = function(boardId){
         var statement = connection.prepareStatement(sql);
         statement.setInt(1, boardId);        
         statement.executeUpdate();
-		console.info('Board['+boardId+'] visit recorded');
+        log.info('${packageName.toUpperCase()}_BOARD['+boardId+'] entity visits updated');
         return this;
         
     } catch(e) {
@@ -480,147 +408,15 @@ exports.visit = function(boardId){
     }
 };
 
-exports.listBoardTags = function(boardId){
-
-	log.info('Listing ${packageName.toUpperCase()}_BOARD_TAG entities for ${packageName.toUpperCase()}_BOARD[' + boardId + '] entity');
-
-	if(boardId === undefined || boardId === null){
-		throw new Error('Illegal argument for id parameter:' + boardId);
-	}
-
-    var connection = datasource.getConnection();
-    try {
-        var sql = "SELECT * FROM ANN_TAG LEFT JOIN ${packageName.toUpperCase()}_BOARD_TAG ON ${packageName.toUpperCase()}T_ANN_ID=ANN_ID WHERE ${packageName.toUpperCase()}T_${packageName.toUpperCase()}B_ID=?";
-     
-        var statement = connection.prepareStatement(sql);
-        statement.setInt(1, boardId);
-
-        var resultSet = statement.executeQuery();
-        var tagEntities = [];
-        while (resultSet.next()) {
-        	var tagEntity = {
-        		ann_id: resultSet.getInt("ANN_ID"),
-			    defaultLabel: resultSet.getString("ANN_DEFAULT_LABEL"),
-			    uri: resultSet.getString("ANN_URI")
-        	};
-        	tagEntities.push(tagEntity);
-        } 
-        log.info(tagEntities.length+' ${packageName.toUpperCase()}_BOARD_TAG entities for ${packageName.toUpperCase()}_BOARD[' + boardId+ '] entity found');
-        return tagEntities;
-    } catch(e) {
-		e.errContext = sql;
-		throw e;
-    } finally {
-        connection.close();
-    }	
-};
-
-exports.tag = function(boardId, tags, createOnDemand){
-	var tagsLib = require('annotations/lib/tags_dao');
-	var connection = datasource.getConnection();
-	try{
-	
-		var existingBoardTagEntities = exports.listBoardTags(boardId);
-		var existingBoardTags = [];
-		if(existingBoardTagEntities!==null){
-			existingBoardTags = existingBoardTagEntities.map(function(tagEntity){
-				return tagEntity.defaultLabel;
-			});
-		}
-	
-		for(var i=0; i < tags.length; i++){
-			
-			if(existingBoardTags.indexOf(tags[i])>-1)
-				continue;
-			
-			var tagEntity = tagsLib.findByTagValue(tags[i]);
-			
-			if(tagEntity === null && createOnDemand){
-				tagEntity = tagsLib.insert({
-										defaultLabel: tags[i],
-										uri: tags[i]
-									});
-			}
-			
-			if(tagEntity.ann_id){
-			
-				var sql =  "INSERT INTO ${packageName.toUpperCase()}_BOARD_TAG (";
-		        	sql += "${packageName.toUpperCase()}T_ID, ${packageName.toUpperCase()}T_${packageName.toUpperCase()}B_ID, ${packageName.toUpperCase()}T_ANN_ID) "; 
-		        	sql += "VALUES (?,?,?)";
-		
-		        var statement = connection.prepareStatement(sql);
-		        
-		        var j = 0;
-		        var tagId = datasource.getSequence('${packageName.toUpperCase()}_BOARD_TAG_${packageName.toUpperCase()}T_ID').next();
-		        statement.setInt(++j, tagId);
-		        statement.setInt(++j, boardId);        
-		        statement.setString(++j, tagEntity.ann_id);        
-			    
-			    statement.executeUpdate();
-		    	
-		    	log.info('${packageName.toUpperCase()}_BOARD_TAG[' +  tagId + '] entity inserted for ${packageName.toUpperCase()}_BOARD['+boardId+'] entity');
-			}
-		}
-	} catch(e) {
-		e.errContext = sql;
-		throw e;
-    } finally {
-        connection.close();
-    }
-
-};
-
-exports.untag = function(boardId, tags){
-	var connection = datasource.getConnection();
-	try{
-	
-		var existingBoardTagEntities = exports.listBoardTags(boardId);
-		var existingBoardTags = [];
-		if(existingBoardTagEntities!==null){
-			existingBoardTags = existingBoardTagEntities.map(function(tagEntity){
-				return tagEntity.defaultLabel;
-			});
-		}
-	
-		for(var i=0; i < tags.length; i++){
-			
-			if(existingBoardTags.indexOf(tags[i])<0)
-				continue;
-			
-			var entityToRemove = existingBoardTagEntities[existingBoardTags.indexOf(tags[i])];
-			
-			var sql =  "DELETE FROM ${packageName.toUpperCase()}_BOARD_TAG ";
-	        	sql += "WHERE ${packageName.toUpperCase()}T_${packageName.toUpperCase()}B_ID=? AND ${packageName.toUpperCase()}T_ANN_ID=? "; 
-	        	sql += "VALUES (?,?)";
-	
-	        var statement = connection.prepareStatement(sql);
-	        
-	        var j = 0;
-	        statement.setInt(++j, boardId);        
-	        statement.setString(++j, entityToRemove.ann_id);        
-		    
-		    statement.executeUpdate();
-	    	
-	    	log.info('${packageName.toUpperCase()}_BOARD_TAG[' +  entityToRemove.tagId+ '] entity relation to ${packageName.toUpperCase()}_BOARD['+boardId+'] entity removed');
-		}
-	} catch(e) {
-		e.errContext = sql;
-		throw e;
-    } finally {
-        connection.close();
-    }
-
-};
-
 exports.lock = function(boardId){
-    $log.info('Locking board entity ${packageName.toUpperCase()}_BOARD[' +  boardId+ ']');
+    log.info('Updating ${packageName.toUpperCase()}_BOARD[' +  boardId+ '] entity lock[true]');
 	var connection = datasource.getConnection();
 	try{
 		var sql =  "UPDATE ${packageName.toUpperCase()}_BOARD SET ${packageName.toUpperCase()}B_LOCKED=1 WHERE ${packageName.toUpperCase()}B_ID=?";
         var statement = connection.prepareStatement(sql);
         statement.setInt(1, boardId);	    
 	    statement.executeUpdate();
-    	$log.info('Board entity ${packageName.toUpperCase()}_BOARD[' +  boardId+ '] locked');
+    	log.info('${packageName.toUpperCase()}_BOARD[' +  boardId+ '] entity lock[true] updated');
 	} catch(e) {
 		e.errContext = sql;
 		throw e;
@@ -630,14 +426,14 @@ exports.lock = function(boardId){
 };
 
 exports.unlock = function(boardId){
-    $log.info('Unlocking board entity ${packageName.toUpperCase()}_BOARD[' +  boardId+ ']');
+	log.info('Updating ${packageName.toUpperCase()_BOARD[' +  boardId + '] entity lock[false]');
 	var connection = datasource.getConnection();
 	try{
 		var sql = "UPDATE ${packageName.toUpperCase()}_BOARD SET ${packageName.toUpperCase()}DISB_LOCKED=0 WHERE ${packageName.toUpperCase()}B_ID=?";
         var statement = connection.prepareStatement(sql);
         statement.setInt(1, boardId);	    
 	    statement.executeUpdate();
-    	$log.info('Board entity ${packageName.toUpperCase()}_BOARD[' +  boardId+ '] unlocked');
+	    log.info('${packageName.toUpperCase()_BOARD[' +  boardId + '] entity lock[false] updated');
 	} catch(e) {
 		e.errContext = sql;
 		throw e;
@@ -647,7 +443,7 @@ exports.unlock = function(boardId){
 };
 
 exports.isLocked = function(boardId){
-    $log.info('Checking board entity ${packageName.toUpperCase()}_BOARD[' +  boardId+ '] for lock state');
+    log.info('Finding ${packageName.toUpperCase()}_BOARD[' +  boardId+ '] entity lock value');
 	var connection = datasource.getConnection();
 	try{
 		var sql = "SELECT ${packageName.toUpperCase()}B_LOCKED FROM ${packageName.toUpperCase()}_BOARD WHERE ${packageName.toUpperCase()}B_ID=?";
@@ -659,7 +455,7 @@ exports.isLocked = function(boardId){
         if (resultSet.next()) {
         	isLocked = resultSet.getShort('${packageName.toUpperCase()}B_LOCKED')===1;
         }
-        $log.info('Board entity ${packageName.toUpperCase()}_BOARD[' +  boardId+ '] lock state checked');
+        log.info('${packageName.toUpperCase()}_BOARD[' +  boardId+ '] entity lock value found');
         return isLocked;
 	} catch(e) {
 		e.errContext = sql;

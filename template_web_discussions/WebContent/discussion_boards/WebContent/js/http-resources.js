@@ -41,9 +41,11 @@
 	}])		
 	.service('BoardTags', ['${D}resource', function(${D}resource) {
 	  	return ${D}resource('../../js/${packageName}/svc/board.js/:boardId/tags', {}, 
-	  			{get: {method:'GET', params:{}, isArray:true, ignoreLoadingBar: true}},
-	  			{remove: {method:'DELETE', params:{}, isArray:true, ignoreLoadingBar: true}},
-	  			{save: {method:'POST', params:{}, isArray:true, ignoreLoadingBar: true}});
+	  			{
+	  				get: {method:'GET', params:{}, isArray:true, ignoreLoadingBar: true},
+	  				save: {method:'POST', params:{}, isArray:true, ignoreLoadingBar: true},
+	  				remove: {method:'DELETE', params:{}, isArray:true, ignoreLoadingBar: true}
+	  			});
 	}])	
 	.service('BoardCommentsTimeline', ['${D}resource', function(${D}resource) {
 	  	return ${D}resource('../../js/${packageName}/svc/board.js/:boardId/comments/timeline', {}, 

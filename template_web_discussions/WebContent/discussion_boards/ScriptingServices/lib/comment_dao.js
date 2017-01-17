@@ -95,9 +95,11 @@ exports.find = function(id, expanded) {
             	log.info('${packageName.toUpperCase()}_COMMENT entity with id[' + id + '] found');
             	if(expanded){
             		item.comments = exports.findComments(item.boardId, expanded);
-            	}            	
-        	}
-        }
+            	} 
+            }           	
+		} else {
+        	log.info('${packageName.toUpperCase()}_COMMENT entity with id[' + id + '] found');
+       	}
         
         return item;
 
@@ -143,7 +145,7 @@ exports.findComments = function(boardId, expanded) {
 
 exports.findReplies = function(boardId, commentId) {
 
-	log.info('Finding ${packageName.toUpperCase()}_COMMENT entities in reply to ${packageName.toUpperCase()}_COMMENT entity with id[' + commentId + '] for ${packageName.toUpperCase()}_BOARD entity with id['+boardId+']');
+	log.info('Finding ${packageName.toUpperCase()}_COMMENT entities in reply to ${packageName.toUpperCase()}_COMMENT entity with id[' + commentId + '] for ${packageName.toUpperCase()}_BOARD['+boardId+'] entity');
 
     var connection = datasource.getConnection();
     try {
@@ -158,7 +160,7 @@ exports.findReplies = function(boardId, commentId) {
             items.push(createEntity(resultSet));
         }
         
-        log.info('' + items.length +'  ${packageName.toUpperCase()}_COMMENT entities in reply to ${packageName.toUpperCase()}_COMMENT entity with id[' + commentId + '] for ${packageName.toUpperCase()}_BOARD entity with id['+boardId+'] found');
+        log.info('' + items.length +'  ${packageName.toUpperCase()}_COMMENT entities in reply to ${packageName.toUpperCase()}_COMMENT entity with id[' + commentId + '] for ${packageName.toUpperCase()}_BOARD['+boardId+'] entity');
         
         return items;
 
@@ -172,7 +174,7 @@ exports.findReplies = function(boardId, commentId) {
 
 exports.findDiscussionPosts = function(boardId, flat) {
 
-	log.info('Finding ${packageName.toUpperCase()}_COMMENT entities for ${packageName.toUpperCase()}_BOARD entity with id[' + boardId + ']');
+	log.info('Finding ${packageName.toUpperCase()}_COMMENT entities for ${packageName.toUpperCase()}_BOARD['+boardId+'] entity');
 
     var connection = datasource.getConnection();
     try {
@@ -210,7 +212,7 @@ exports.findDiscussionPosts = function(boardId, flat) {
            	item.replies = exports.findReplies(boardId, item.id);
         }
         
-        log.info('' + items.length +' ${packageName.toUpperCase()}_COMMENT entities in reply to ${packageName.toUpperCase()}_BOARD entity with id['+boardId+'] found');
+        log.info('' + items.length +' ${packageName.toUpperCase()}_COMMENT entities in reply to ${packageName.toUpperCase()}_BOARD['+boardId+'] entity');
         
         return items;
 
@@ -226,7 +228,7 @@ exports.findDiscussionPosts = function(boardId, flat) {
 // Read all entities, parse and return them as an array of JSON objets
 exports.list = function(boardId, limit, offset, sort, order, expanded) {
 
-	log.info('Listing ${packageName.toUpperCase()}_COMMENT entity collection for ${packageName.toUpperCase()}_BOARD id [' + boardId + '] with list operators: limit['+limit+'], offset['+offset+'], sort['+sort+'], order['+order+'], expanded['+expanded+']');
+	log.info('Listing ${packageName.toUpperCase()}_COMMENT entity collection for ${packageName.toUpperCase()}_BOARD[' + boardId + '] with list operators: limit['+limit+'], offset['+offset+'], sort['+sort+'], order['+order+'], expanded['+expanded+']');
 
     var connection = datasource.getConnection();
     try {
@@ -321,7 +323,7 @@ function createSQLEntity(item) {
 // update entity from a JSON object. Returns the id of the updated entity.
 exports.update = function(item) {
 
-	log.info('Updating ${packageName.toUpperCase()}_COMMENT entity with id[' + item!==undefined?item.id:item + ']');
+	log.info('Updating ${packageName.toUpperCase()}_COMMENT[' + item!==undefined?item.id:item + '] entity');
 
 	if(item === undefined || item === null){
 		throw new Error('Illegal argument: entity is ' + item);
@@ -350,7 +352,7 @@ exports.update = function(item) {
         statement.setInt(++i, id);
         statement.executeUpdate();
         
-        log.info('${packageName.toUpperCase()}_COMMENT entity with id[' + id + '] updated');
+        log.info('${packageName.toUpperCase()}_COMMENT[' + id + '] entity updated');
         
         return this;
 
@@ -365,7 +367,7 @@ exports.update = function(item) {
 // delete entity by id. Returns the id of the deleted entity.
 exports.remove = function(id) {
 
-	log.info('Deleting ${packageName.toUpperCase()}_COMMENT entity with id[' + id + ']');
+	log.info('Deleting ${packageName.toUpperCase()}_COMMENT[' + id + '] entity');
 	
 	if(id === undefined || id === null){
 		throw new Error('Illegal argument: id[' + id + ']');
@@ -378,7 +380,7 @@ exports.remove = function(id) {
         statement.setInt(1, id);
         statement.executeUpdate();
         
-        log.info('${packageName.toUpperCase()}_COMMENT entity with id[' + id + '] deleted');        
+        log.info('${packageName.toUpperCase()}_COMMENT[' + id + '] entity deleted');        
         
         return this;
         

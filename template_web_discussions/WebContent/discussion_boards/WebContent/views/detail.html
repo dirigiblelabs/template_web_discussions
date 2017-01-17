@@ -11,7 +11,7 @@
 	
 	<div class="main-compartment">
 		
-		<a class="title" ng-bind="detailsVm.board.shortText" ui-sref="list.entity({boardId:detailsVm.board.disb_id, board: detailsVm.board})" ui-sref-opts="{reload: true}"></a>
+		<a class="title" ng-bind="detailsVm.board.shortText" ui-sref="list.entity({boardId:detailsVm.board.id, board: detailsVm.board})" ui-sref-opts="{reload: true}"></a>
 
 		<div class="stats">
 			<span>{{detailsVm.board.visitsShort||0}} <i class="fa fa-eye"></i></span>
@@ -28,6 +28,13 @@
 		</div>
 
 		<div class="description" ng-bind-html="detailsVm.board.description" ng-if="!detailsVm.descriptionEdit"></div>
+		
+		<tags-input ng-if="detailsVm.isAuthor()" ng-model="detailsVm.tags" on-tag-added="detailsVm.tagAdded($tag)" 
+											  							   on-tag-removed="detailsVm.tagRemoved($tag)"></tags-input>
+		<div ng-if="!detailsVm.isAuthor()">
+			<span ng-repeat="tag in detailsVm.tags" ng-bind="tag.text" style="margin: 2px; padding: 0 5px; display: inline-block; float: left; height: 26px; line-height: 25px; border: 1px solid #acacac; border-radius: 3px;  background: #f1f1f1"><span>
+		</div>									  							   
+		
 		<span ng-if="detailsVm.board.timeSinceLastModified" title="{{detailsVm.board.lastModifiedTimeLocal}}" style="color:#767676;font-size:0.875em">- last edit {{detailsVm.board.timeSinceLastModified}}</span>
 		<div ng-if="detailsVm.descriptionEdit"> 
 			<textarea class="form-control" ng-model="detailsVm.descriptionEdit" style="width:100%; margin-bottom:3px" ck-editor></textarea>
@@ -37,9 +44,10 @@
 			</div>
 		</div>		
 
-		<div class="tools" ng-if="!detailsVm.descriptionEdit">
+		<div class="tools" ng-if="detailsVm.isAuthor() && !detailsVm.descriptionEdit">
 			<a ng-if="detailsVm.board.editable" ng-click="detailsVm.toggleLock()" href title="{{detailsVm.board.locked?'locked':'unlocked'}}"><i ng-if="!detailsVm.board.locked" class="fa fa-unlock-alt"></i><i ng-if="detailsVm.board.locked" class="fa fa-lock"></i></a>
-			<a ng-if="detailsVm.board.editable" ng-click="detailsVm.openBoardForEdit()" href>Edit</a> 
+			<a ng-if="detailsVm.board.editable" ng-click="detailsVm.openBoardForEdit()" href style="margin-left:5px"><i class="fa fa-pencil"></i> Edit</a> 
+			<a ng-if="detailsVm.board.editable" ng-click="detailsVm.remove()" href style="margin-left:5px"><i class="fa fa-trash-o"></i> Delete</a>
 		</div>
 
 	</div>
@@ -51,12 +59,12 @@
 			<span class="rating-number">{{detailsVm.board.ratingShort}}</span>
 			<span class="votes-number">{{detailsVm.board.totalVotesShort}} Votes</span>
 		</div>
-		<div class="vote-tool" style="display: flex;align-items: center;width: 100%;" ng-if="!detailsVm.isAuthor() && !detailsVm.board.locked">
+		<div class="vote-tool" style="display: flex;align-items: center;width: 100%;" ng-if="detailsVm.canVote()">
 			<a ng-click="detailsVm.saveVote(1)" href ng-if="detailsVm.board.currentUserVote!==1" style="flex: 1 0 auto;"><i class="fa fa-thumbs-up default" aria-hidden="true"></i></a>
 			<span ng-if="detailsVm.board.currentUserVote===1" style="flex: 1 0 auto;"><i class="fa fa-thumbs-up active" aria-hidden="true"></i></span>
 			<span style="font-size:1.6rem;color:#767676">{{detailsVm.board.upvotesShort}}</span>
 		</div>
-		<div class="vote-tool" style="display: flex;align-items: center;width: 100%;" ng-if="!detailsVm.isAuthor() && !detailsVm.board.locked">
+		<div class="vote-tool" style="display: flex;align-items: center;width: 100%;" ng-if="detailsVm.canVote()">
 			<a ng-click="detailsVm.saveVote(-1)" href ng-if="detailsVm.board.currentUserVote!==-1" style="flex: 1 0 auto;"><i class="fa fa-thumbs-up fa-rotate-180 default" aria-hidden="true"></i></a>
 			<span ng-if="detailsVm.board.currentUserVote===-1" style="flex: 1 0 auto;"><i class="fa fa-thumbs-up fa-rotate-180 active" aria-hidden="true"></i></span>			
 			<span style="font-size:1.6rem;color:#767676">{{detailsVm.board.downvotesShort}}</span>									
