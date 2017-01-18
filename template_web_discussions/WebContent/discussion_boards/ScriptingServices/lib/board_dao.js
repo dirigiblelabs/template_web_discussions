@@ -123,8 +123,10 @@ exports.find = function(id, expanded) {
 				   	 entity[itemsEntitySetName] = dependentItemEntities;
 			   	   }
 			   	   var currentUser = userLib.getName();
-			   	   var userVote = boardVotes.getVote(id, currentUser);
-			   	   entity.currentUserVote = userVote;
+			   	   if(currentUser){
+				   	   var userVote = boardVotes.getVote(id, currentUser);
+				   	   entity.currentUserVote = userVote;
+			   	   }
 				}            	
         	} else {
 	        	log.info('${packageName.toUpperCase()}_BOARD_STATS[' + id + '] entity not found');
@@ -326,7 +328,6 @@ exports.remove = function(id, cascaded) {
     try {
     
     	var sql = "DELETE FROM ${packageName.toUpperCase()}_BOARD";
-    	
     	if(id !== null){
     	 	sql += " WHERE " + exports.pkToSQL();
     	 	if(id.constructor === Array){

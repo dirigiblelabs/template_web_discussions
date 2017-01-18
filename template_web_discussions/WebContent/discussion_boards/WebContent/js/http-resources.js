@@ -47,8 +47,8 @@
 	  				remove: {method:'DELETE', params:{}, isArray:true, ignoreLoadingBar: true}
 	  			});
 	}])	
-	.service('BoardCommentsTimeline', ['${D}resource', function(${D}resource) {
-	  	return ${D}resource('../../js/${packageName}/svc/board.js/:boardId/comments/timeline', {}, 
+	.service('BoardComments', ['${D}resource', function(${D}resource) {
+	  	return ${D}resource('../../js/${packageName}/svc/board.js/:boardId/comments/:listMode', {}, 
 	  			{get: {method:'GET', params:{}, isArray:true, ignoreLoadingBar: true}});
 	}])	
 	.service('${D}Comment', ['${D}resource', '${D}log', function(${D}resource, ${D}log) {

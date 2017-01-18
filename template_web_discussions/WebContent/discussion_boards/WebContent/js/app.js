@@ -220,10 +220,10 @@ angular.module('discussion-boards', ['$moment', '$ckeditor', 'ngSanitize', 'ngAn
 		})
 		.state('list.entity.discussion-timeline', {
 			resolve: {
-				comments: ['BoardCommentsTimeline', 'board', function(BoardCommentsTimeline, board){
-					return BoardCommentsTimeline
-							.get({boardId: board.id}).$promise.
-							then(function(comments){
+				comments: ['$Comments', 'board', function($Comments, board){
+					return 	$Comments
+							.list(board.id, 'timeline')
+							.then(function(comments){
 								return comments;
 							});
 				}]
@@ -258,10 +258,12 @@ angular.module('discussion-boards', ['$moment', '$ckeditor', 'ngSanitize', 'ngAn
 							var operation = self.comment.id!==undefined?'update':'save';
 							$Comment[operation](self.comment).$promise
 							.then(function(commentData){
+								//TODO: mixin into the resource the id from Location header upon response
 								$log.info('Comment with id['+commentData.id+'] saved');
 								$Boards.get(board.id)
 								.then(function(board){
 									$state.go('list.entity', {board: board, timeline: true});
+									//$state.go('list.entity.discussion-timeline', {board: board});
 								});
 							})
 							.catch(function(err){
@@ -294,7 +296,21 @@ angular.module('discussion-boards', ['$moment', '$ckeditor', 'ngSanitize', 'ngAn
 							.then(function(data){
 								return data;
 							});
-						};
+						}
+						
+						this.remove = function(comment){
+							$Comment['delete']({commentId:comment.id}).$promise
+							.then(function(){
+								$Boards.get(board.id)
+								.then(function(board){
+									$state.go('list.entity', {board: board}, {reload:true});
+								});
+							})
+							.catch(function(err){
+								throw err;
+							});
+						};						
+
 
 					}],
 					controllerAs: 'vm'				
@@ -333,6 +349,7 @@ angular.module('discussion-boards', ['$moment', '$ckeditor', 'ngSanitize', 'ngAn
 							var operation = self.comment.id!==undefined?'update':'save';
 							$Comment[operation](self.comment).$promise
 							.then(function(commentData){
+								//TODO: mixin into the resource the id from Location header upon response
 								$log.info('Comment with id['+commentData.id+'] saved');
 								$Boards.get(board.id)
 								.then(function(board){
@@ -366,7 +383,7 @@ angular.module('discussion-boards', ['$moment', '$ckeditor', 'ngSanitize', 'ngAn
 
 						this.replyPost = function(){
 							var upsertOperation = self.reply.id===undefined?'save':'update';
-							$Comment[upsertOperation ](self.reply).$promise
+							$Comment[upsertOperation](self.reply).$promise
 							.then(function(){
 								$log.info('reply saved');
 								$Boards.get(board.id)
@@ -381,6 +398,19 @@ angular.module('discussion-boards', ['$moment', '$ckeditor', 'ngSanitize', 'ngAn
 								self.replyCancel();
 							});
 						};
+						
+						this.remove = function(comment){
+							$Comment['delete']({commentId:comment.id}).$promise
+							.then(function(){
+								$Boards.get(board.id)
+								.then(function(board){
+									$state.go('list.entity', {board: board}, {reload:true});
+								});
+							})
+							.catch(function(err){
+								throw err;
+							});
+						};						
 
 					}],
 					controllerAs: 'vm'				
