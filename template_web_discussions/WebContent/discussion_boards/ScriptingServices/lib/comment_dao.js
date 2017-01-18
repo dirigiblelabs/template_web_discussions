@@ -375,12 +375,13 @@ exports.remove = function(id) {
 
     var connection = datasource.getConnection();
     try {
-    	var sql = "DELETE FROM ${packageName.toUpperCase()}_COMMENT WHERE " + exports.pkToSQL() + " OR DISC_REPLY_TO_DISC_ID = ?";
+    	var sql = "DELETE FROM ${packageName.toUpperCase()}_COMMENT WHERE " + exports.pkToSQL() + " OR ${packageName.toUpperCase()}C_REPLY_TO_${packageName.toUpperCase()}C_ID = ?";
         var statement = connection.prepareStatement(sql);
         statement.setInt(1, id);
+        statement.setInt(2, id);        
         statement.executeUpdate();
         
-        log.info('${packageName.toUpperCase()}_COMMENT[' + id + '] entity and dependent DIS_COMMENT entities deleted');        
+        log.info('${packageName.toUpperCase()}_COMMENT[' + id + '] entity and dependent ${packageName.toUpperCase()}_COMMENT entities deleted');        
         
         return id;
         
