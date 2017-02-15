@@ -71,5 +71,15 @@
 	  	return {
 	  		get: get
 	  	};
+	}])
+	.service('${D}LoggedUserProfile', ['${D}resource', function($resource) {
+		var UserSvc =  ${D}resource('../../js-secured/${packageName}/svc/user/profile.js/logout', {}, 
+	  					{get: {method:'GET', params:{}, isArray:false, ignoreLoadingBar: true}});
+	  	var logout = function(){
+		  	return UserSvc.get().${D}promise;
+	  	};
+	  	return {
+	  		logout: logout
+	  	};
 	}]);
 })(angular);

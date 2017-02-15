@@ -98,6 +98,19 @@ angular.module('discussion-boards', ['$moment', '$ckeditor', 'ngSanitize', 'ngAn
 		  	}
 		  }
 		})
+		.state('logout', {
+			views: {
+				"@": {
+			    	template: '',
+			        controller: ['$state', '$LoggedUserProfile', function($state, $LoggedUserProfile){
+			        	$LoggedUserProfile.logout()
+			        	.finally(function(){
+			        		$state.go('list');
+			        	});
+					}]
+				}
+			}
+		})			
 		.state('list.login', {
 			url: "login",
 			views: {
