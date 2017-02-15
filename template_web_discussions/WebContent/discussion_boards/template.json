@@ -56,7 +56,7 @@
         "action": "copy"
     }, {
         "name": "WebContent/login/login.html",
-        "action": "copy"
+        "action": "generate"
     }, {
         "name": "WebContent/views/board.html",
         "action": "copy"
