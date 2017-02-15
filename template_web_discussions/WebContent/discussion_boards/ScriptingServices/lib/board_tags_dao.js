@@ -27,7 +27,7 @@ var BoardTagORM = {
 		}],
 	associationSets: {
 		board: {
-			dao: require("discussion_boards/lib/board_dao").get,
+			dao: require("${packageName}/lib/board_dao").get,
 			associationType: 'many-to-one',
 			joinKey: "boardId"
 		},
