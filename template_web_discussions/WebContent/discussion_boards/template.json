@@ -19,10 +19,19 @@
         "name": "WebContent/css/angular-timeline-animations.css",
         "action": "copy"
     }, {
+        "name": "WebContent/i18n/resourceBundle.json",
+        "action": "copy"
+    }, {
+        "name": "WebContent/i18n/resourceBundle_bg.json",
+        "action": "copy"
+    }, {
         "name": "WebContent/js/app.js",
         "action": "copy"
     }, {
         "name": "WebContent/js/http-resources.js",
+        "action": "generate"
+    }, {
+        "name": "WebContent/js/http-resources-sec.js",
         "action": "generate"
     }, {
         "name": "WebContent/js/app-services.js",
@@ -37,46 +46,76 @@
         "name": "WebContent/js/angular-scroll-animate.js",
         "action": "copy"
     }, {
-        "name": "WebContent/views/master.html",
+        "name": "WebContent/js/i18n.js",
         "action": "copy"
     }, {
-        "name": "WebContent/views/detail.html",
+        "name": "WebContent/js/ng-i18n.js",
         "action": "copy"
     }, {
-        "name": "WebContent/views/toolbar.html",
+        "name": "WebContent/js/ng-i18n.min.js",
         "action": "copy"
     }, {
-        "name": "WebContent/views/discussion.html",
+        "name": "WebContent/login/login.html",
         "action": "copy"
     }, {
-        "name": "WebContent/views/discussion-timeline.html",
-        "action": "copy"
-    }, {
-        "name": "WebContent/views/settings.html",
+        "name": "WebContent/views/board.html",
         "action": "copy"
     }, {
         "name": "WebContent/views/board.form.html",
         "action": "copy"
     }, {
-        "name": "ScriptingServices/logging/lib/logger.js",
+        "name": "WebContent/views/boards.list.html",
+        "action": "copy"
+    }, {
+        "name": "WebContent/views/discussion.thread.html",
+        "action": "copy"
+    }, {
+        "name": "WebContent/views/discussion.timeline.html",
+        "action": "copy"
+    }, {
+        "name": "WebContent/views/login.html",
+        "action": "copy"
+    }, {
+        "name": "WebContent/views/settings.html",
+        "action": "copy"
+    }, {
+        "name": "WebContent/views/toolbar.html",
         "action": "copy"
     }, {
         "name": "ScriptingServices/lib/board_dao.js",
         "action": "generate"
     }, {
-        "name": "ScriptingServices/lib/board_tags.js",
+        "name": "ScriptingServices/lib/board_stats_dao.js",
         "action": "generate"
     }, {
-        "name": "ScriptingServices/lib/board_votes.js",
+        "name": "ScriptingServices/lib/board_stats_service_lib.js",
+        "action": "generate"
+    }, {
+        "name": "ScriptingServices/lib/board_tags_dao.js",
+        "action": "generate"
+    }, {
+        "name": "ScriptingServices/lib/board_votes_dao.js",
+        "action": "generate"
+    }, {
+        "name": "ScriptingServices/lib/boards_service_lib.js",
         "action": "generate"
     }, {
         "name": "ScriptingServices/lib/comment_dao.js",
+        "action": "generate"
+    }, {
+        "name": "ScriptingServices/lib/comments_service_lib.js",
         "action": "generate"
     }, {
         "name": "ScriptingServices/svc/board.js",
         "action": "generate"
     }, {
         "name": "ScriptingServices/svc/comment.js",
+        "action": "generate"
+    }, {
+        "name": "ScriptingServices/svc/user/board.js",
+        "action": "generate"
+    }, {
+        "name": "ScriptingServices/svc/user/comment.js",
         "action": "generate"
     }, {
         "name": "DataStructures/dis_board.table",
